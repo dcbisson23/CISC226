@@ -10,8 +10,10 @@ public class TimeController : MonoBehaviour
     {
         public Vector2 pos;
         public Vector2 vel;
+        public float animationTime;
     }
 
+    RecordedData[,] independantRecordedData;
     RecordedData[,] recordedData; 
     int recordMax = 100000; 
     int recordCount; 
@@ -19,11 +21,14 @@ public class TimeController : MonoBehaviour
     bool wasRewinding = false;
 
     TimeControlled[] timeObjects;
+    
+
 
     private void Awake() 
     {
         timeObjects = GameObject.FindObjectsOfType<TimeControlled>();
         recordedData = new RecordedData[timeObjects.Length,recordMax];
+
     }
     // Start is called before the first frame update
     void Start()
@@ -52,9 +57,36 @@ public class TimeController : MonoBehaviour
                     RecordedData data = recordedData[objectIndex, recordIndex];
                     timeObject.transform.position = data.pos;
                     timeObject.velocity = data.vel; 
+                    timeObject.animationTime = data.animationTime;
+        
+                    timeObject.updateAnimation();
                 }
             }
         }
+        // else if (fforward && !pause)
+        // {
+        //     wasRewinding = true;
+
+        //     for (int objectIndex = 0; objectIndex < timeObjects.Length; objectIndex++)
+        //     {
+        //         TimeControlled timeObject = timeObjects[objectIndex];
+        //         RecordedData data = recordedData[objectIndex, recordIndex];
+        //         timeObject.TimeUpdate();
+        //         timeObject.updateAnimation();
+        //         if (timeObject.tag == "IndependentTime")
+        //         {
+        //             timeObject.velocity.x *= 2;
+        //             timeObject.velocity.y *= 2;
+        //             // timeObject.transform.position = data.pos;
+        //             // timeObject.velocity = data.vel; 
+        //             // timeObject.animationTime = data.animationTime;
+        //             // timeObject.TimeUpdate();
+        //             // timeObject.updateAnimation();
+        //         }
+                
+        //     }
+        
+        // }
         else if (pause && fforward) 
         {
             wasRewinding = true;
@@ -69,6 +101,9 @@ public class TimeController : MonoBehaviour
                     RecordedData data = recordedData[objectIndex, recordIndex];
                     timeObject.transform.position = data.pos;
                     timeObject.velocity = data.vel; 
+                    timeObject.animationTime = data.animationTime;
+
+                    timeObject.updateAnimation();
                 }
             }
         }
@@ -86,6 +121,7 @@ public class TimeController : MonoBehaviour
                 RecordedData data = new RecordedData();
                 data.pos = timeObject.transform.position;
                 data.vel = timeObject.velocity;
+                data.animationTime = timeObject.animationTime;
                 recordedData[objectIndex, recordCount] = data;
             }
             recordCount++;
@@ -94,6 +130,7 @@ public class TimeController : MonoBehaviour
             foreach(TimeControlled timeObject in timeObjects)
             {
                 timeObject.TimeUpdate();
+                timeObject.updateAnimation();
             }
         }
 
