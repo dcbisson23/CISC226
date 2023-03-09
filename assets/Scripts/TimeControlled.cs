@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TimeControlled : MonoBehaviour
 {
-    
+    public float speedMultiplier; 
     public Vector2 velocity;
     public AnimationClip currentAnimation; 
     public float animationTime;

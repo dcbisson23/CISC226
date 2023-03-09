@@ -63,30 +63,6 @@ public class TimeController : MonoBehaviour
                 }
             }
         }
-        // else if (fforward && !pause)
-        // {
-        //     wasRewinding = true;
-
-        //     for (int objectIndex = 0; objectIndex < timeObjects.Length; objectIndex++)
-        //     {
-        //         TimeControlled timeObject = timeObjects[objectIndex];
-        //         RecordedData data = recordedData[objectIndex, recordIndex];
-        //         timeObject.TimeUpdate();
-        //         timeObject.updateAnimation();
-        //         if (timeObject.tag == "IndependentTime")
-        //         {
-        //             timeObject.velocity.x *= 2;
-        //             timeObject.velocity.y *= 2;
-        //             // timeObject.transform.position = data.pos;
-        //             // timeObject.velocity = data.vel; 
-        //             // timeObject.animationTime = data.animationTime;
-        //             // timeObject.TimeUpdate();
-        //             // timeObject.updateAnimation();
-        //         }
-                
-        //     }
-        
-        // }
         else if (pause && fforward) 
         {
             wasRewinding = true;
@@ -107,8 +83,8 @@ public class TimeController : MonoBehaviour
                 }
             }
         }
-        else if (!pause && !rewind)
-        {   
+        else if (!pause && fforward)
+        {
             if (wasRewinding)
             {
                 recordCount = recordIndex;
@@ -123,6 +99,34 @@ public class TimeController : MonoBehaviour
                 data.vel = timeObject.velocity;
                 data.animationTime = timeObject.animationTime;
                 recordedData[objectIndex, recordCount] = data;
+                timeObject.speedMultiplier = 3;
+            }
+            recordCount++;
+            recordIndex = recordCount; 
+
+            foreach(TimeControlled timeObject in timeObjects)
+            {
+                timeObject.TimeUpdate();
+                timeObject.updateAnimation();
+            }
+        }
+        else if (!pause && !rewind && !fforward)
+        {      
+            if (wasRewinding)
+            {
+                recordCount = recordIndex;
+                wasRewinding = false;
+            }
+
+            for (int objectIndex = 0; objectIndex < timeObjects.Length; objectIndex++)
+            {
+                TimeControlled timeObject = timeObjects[objectIndex];
+                RecordedData data = new RecordedData();
+                data.pos = timeObject.transform.position;
+                data.vel = timeObject.velocity;
+                data.animationTime = timeObject.animationTime;
+                recordedData[objectIndex, recordCount] = data;
+                timeObject.speedMultiplier = 1;
             }
             recordCount++;
             recordIndex = recordCount; 

@@ -11,7 +11,7 @@ public class NewBehaviourScript : TimeControlled
     private float dashForce = 5;
 
     public bool floating;
-    private bool crouch;
+    private bool hasKey;
     private bool facingR; 
     private bool dashReady;
     private bool jumpReady;
@@ -31,10 +31,12 @@ public class NewBehaviourScript : TimeControlled
         groundCollider = GetComponent<EdgeCollider2D>();
         spi = GetComponent<SpriteRenderer>();
         rb2d = GetComponent<Rigidbody2D>();
+        hasKey = false;
         floating = false;
         facingR = true;  
         dashReady = true;
         jumpReady = true;
+        speedMultiplier = 1;
 
     }
 
@@ -42,9 +44,6 @@ public class NewBehaviourScript : TimeControlled
     public override void TimeUpdate()
     {   
         base.TimeUpdate();
-        // Animator update
-        // animator.SetFloat("Speed", Mathf.Abs(velocity.x));
-        // animator.SetBool("inAir", floating);
         
         Vector2 pos = transform.position;
 
@@ -52,11 +51,11 @@ public class NewBehaviourScript : TimeControlled
         velocity.y += TimeController.gravity * Time.deltaTime;
         if (facingR)
         {
-        pos.x += velocity.x * Time.deltaTime;
+        pos.x += velocity.x * speedMultiplier * Time.deltaTime;
         }
         if (!facingR)
         {
-            pos.x -= velocity.x *Time.deltaTime;
+            pos.x -= velocity.x * speedMultiplier * Time.deltaTime;
         }
         if (velocity.x > 0){velocity.x -= 3 * Time.deltaTime;}
         
@@ -121,27 +120,77 @@ public class NewBehaviourScript : TimeControlled
         
     }    
     // Triggers
-    private void OnTriggerEnter2D(Collider2D groundCollider) {
-        floating = false;
-        dashReady = true;
-        jumpReady = true; 
-        TimeController.gravity = 0;
-        currentAnimation = walkingAnimation;
-        velocity.y = 0;
-        if (velocity.x > 0){ currentAnimation = walkingAnimation;}
-        else{ currentAnimation = idleAnimation;}
+    private void OnTriggerEnter2D(Collider2D other) {
+
+        if (other.gameObject.tag == "Key")
+        {
+            hasKey = true; 
+            Destroy(other.gameObject);
+            
+        }
+            else
+            {
+                floating = false;
+                dashReady = true;
+                jumpReady = true; 
+                TimeController.gravity = 0;
+                currentAnimation = walkingAnimation;
+                velocity.y = 0;
+                if (velocity.x > 0){ currentAnimation = walkingAnimation;}
+                else{ currentAnimation = idleAnimation;}
+
+
+                if (other.gameObject.tag == "Door" && hasKey)
+                {
+                    other.isTrigger = true;
+                }
+                else if (other.gameObject.tag == "MovingPlatform")
+                {
+                    transform.parent = other.transform;
+                }
+                // else{velocity.x = 0;}
+            }
+        
     }
-    private void OnTriggerStay2D(Collider2D groundCollider) {
+    private void OnTriggerStay2D(Collider2D other) {
         floating = false;
         dashReady = true;
         jumpReady = true;
+        
         if (velocity.x > 0){ currentAnimation = walkingAnimation;}
         else{ currentAnimation = idleAnimation;}
+
+        if (other.gameObject.tag == "MovingPlatform")
+        {
+            transform.parent = other.transform;
+        }
     }
-    private void OnTriggerExit2D(Collider2D groundCollider) {
-        jumpReady = false; 
-        TimeController.gravity = -100;
-        floating = true;
-        currentAnimation = flyingAnimation;
+    private void OnTriggerExit2D(Collider2D other) {
+
+        if (other.gameObject.tag == "Key")
+        {
+
+        }
+        else
+        {
+            jumpReady = false; 
+            TimeController.gravity = -100;
+            floating = true;
+            currentAnimation = flyingAnimation;
+            transform.parent = null;
+            
+            if (other.gameObject.tag == "MovingPlatform")
+            {
+                if (other.transform.TryGetComponent(out MovingPlatformScript MPvelocity))
+                {
+                    velocity.x += MPvelocity.velocity.x * MPvelocity.direction * 2;
+                }
+                else if (other.transform.TryGetComponent(out VMovingPlatformScript MPvelocityV))
+                {
+                    velocity.y += MPvelocityV.velocity.y *MPvelocityV.direction*2;
+                }
+            }
+       
+        }
     }
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovingPlatformScript : TimeControlled
+public class VMovingPlatformScript : TimeControlled
 {
 
     public int direction = 1;
@@ -13,13 +13,13 @@ public class MovingPlatformScript : TimeControlled
     public override void TimeUpdate()
     {
     
-        velocity.x = speedMultiplier * direction;
+        velocity.y = speedMultiplier * direction;
 
         Vector2 pos = transform.position;
-        pos.x += velocity.x * Time.deltaTime;
+        pos.y += velocity.y * Time.deltaTime;
         transform.position = pos;
 
-        if (pos.x >= 13){direction = -1;}
-        if (pos.x <= 0.5){direction = 1;}
+        if (pos.y >= 7){direction = -1;}
+        if (pos.y <= 2){direction = 1;}
    }
 }
