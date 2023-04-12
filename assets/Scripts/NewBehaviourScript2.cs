@@ -64,7 +64,7 @@ public class NewBehaviourScript2 : MonoBehaviour
                 Vector2 jumpDirection;
                 if (grabFlag == true)
                 {
-                    Destroy(gameObject.GetComponent<FixedJoint2D>());
+                    Destroy(gameObject.GetComponent<HingeJoint2D>());
                     grabFlag = false;
                     canGrab = false;
                     grabCDCounter = grabCooldown;
@@ -98,9 +98,9 @@ public class NewBehaviourScript2 : MonoBehaviour
         {
             if (grabFlag == false)
             {
-                FixedJoint2D fj2d = gameObject.AddComponent<FixedJoint2D>() as FixedJoint2D;
-                fj2d.connectedBody = primaryContact.rigidbody;
-                fj2d.enableCollision = true;
+                HingeJoint2D hj2d = gameObject.AddComponent<HingeJoint2D>() as HingeJoint2D;
+                hj2d.connectedBody = primaryContact.rigidbody;
+                hj2d.enableCollision = true;
             }
 
             grabFlag = true;
@@ -112,7 +112,7 @@ public class NewBehaviourScript2 : MonoBehaviour
             Vector2 newLocation = rb2d.position + rb2d.velocity * layerChangeFrameTime * Time.fixedDeltaTime;
             int newLayer = currentLayer + (int) Mathf.Sign(zIN);
             int layerMask = LayerMask.GetMask((LayerMask.LayerToName(newLayer)));
-            Collider2D hit = Physics2D.OverlapCircle(newLocation, playerCollider.radius, newLayer);
+            Collider2D hit = Physics2D.OverlapCircle(newLocation, playerCollider.radius * 2, newLayer);
             if (newLayer >= minLayer && newLayer <= minLayer + 5 && hit == null)
             {
                 gameObject.layer = 3;
@@ -129,7 +129,7 @@ public class NewBehaviourScript2 : MonoBehaviour
             {
                 grabCDCounter = grabCooldown;
             }
-            Destroy(gameObject.GetComponent<FixedJoint2D>());
+            Destroy(gameObject.GetComponent<HingeJoint2D>());
         }
 
 
