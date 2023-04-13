@@ -8,8 +8,7 @@ public class NewBehaviourScript2 : MonoBehaviour
 
     public float moveSpeed = 200;
     public float jumpStrength = 400;
-    public float upwardMoveForce = 100;
-    public float yClingForce = 100;
+    public float snapFactor = 0.5f;
     public float layerChangeFrameTime = 5;
 
     private SpriteRenderer spi;
@@ -57,6 +56,10 @@ public class NewBehaviourScript2 : MonoBehaviour
     {
         if (newLayerTransform != 0)
         {return;}
+
+        float dxIN = xIN;
+        xIN = Input.GetAxis("Horizontal");
+        yIN = Input.GetAxis("Vertical");
         if (Input.GetButtonDown("Jump"))
         {
             if (jumpReady == true)
@@ -68,32 +71,29 @@ public class NewBehaviourScript2 : MonoBehaviour
                     grabFlag = false;
                     canGrab = false;
                     grabCDCounter = grabCooldown;
-                    jumpDirection = (surfaceNorm).normalized;
                 }
-                else
-                {
-                    jumpDirection = (normVelocity + 5 * Vector2.up).normalized;
-                }
+
+                jumpDirection = (surfaceNorm + -Vector2.Perpendicular(surfaceNorm) * xIN + Vector2.up * 3).normalized;
 
                 rb2d.AddForce(jumpDirection * jumpStrength, ForceMode2D.Impulse);
                 isGrounded = false;
                 jumpReady = false;
             }
         }
-        xIN = Input.GetAxis("Horizontal");
+
         if (Mathf.Abs(xIN) > 0.05f)
         {
-            if (isGrounded)
+            if (Mathf.Abs(xIN - dxIN) >= 0.5f)
             {
-                rb2d.AddForce(surfaceNorm * upwardMoveForce, ForceMode2D.Force);
-
+                rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed * snapFactor, ForceMode2D.Force);
             }
             rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed, ForceMode2D.Force);
         }
-        yIN = Input.GetAxis("Vertical");
+
         if (Mathf.Abs(yIN) > 0.05f)
         {
         }
+
         if (Input.GetAxis("Fire3") > 0.05f && canGrab && floorContacts > 0)
         {
             if (grabFlag == false)
@@ -109,10 +109,10 @@ public class NewBehaviourScript2 : MonoBehaviour
         float zIN = Input.GetAxis("Fire2");
         if (Mathf.Abs(zIN) > 0.05f && newLayerTransform == 0 && layerSwapCDCounter == 0)
         {
-            Vector2 newLocation = rb2d.position + rb2d.velocity * layerChangeFrameTime * Time.fixedDeltaTime;
+            Vector2 newLocation = rb2d.position + playerCollider.offset + Vector2.up * 0.2f + rb2d.velocity * layerChangeFrameTime * Time.fixedDeltaTime;
             int newLayer = currentLayer + (int) Mathf.Sign(zIN);
             int layerMask = LayerMask.GetMask((LayerMask.LayerToName(newLayer)));
-            Collider2D hit = Physics2D.OverlapCircle(newLocation, playerCollider.radius * 2, newLayer);
+            Collider2D hit = Physics2D.OverlapCircle(newLocation, playerCollider.radius, layerMask);
             if (newLayer >= minLayer && newLayer <= minLayer + 5 && hit == null)
             {
                 gameObject.layer = 3;
@@ -127,7 +127,9 @@ public class NewBehaviourScript2 : MonoBehaviour
         {
             if (Input.GetAxis("Fire3") < 0.05f && grabFlag)
             {
+                canGrab = false;
                 grabCDCounter = grabCooldown;
+                grabFlag = false;
             }
             Destroy(gameObject.GetComponent<HingeJoint2D>());
         }
@@ -149,6 +151,7 @@ public class NewBehaviourScript2 : MonoBehaviour
 
         if (currentLayer != gameObject.layer)
         {
+            if (isGrounded) {rb2d.gravityScale = 0;}
             float target = (float) (currentLayer - 6) * layerSwapDistance * -1;
             transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.SmoothDamp(transform.position.z, target, ref newLayerTransform, layerSwapTime * Time.deltaTime));
             if (transform.position.z >= target - 0.05f && transform.position.z <= target + 0.05f)
@@ -157,6 +160,7 @@ public class NewBehaviourScript2 : MonoBehaviour
                 gameObject.layer = currentLayer;
                 newLayerTransform = 0;
                 transform.position = new Vector3(transform.position.x, transform.position.y, target);
+                rb2d.gravityScale = 2;
             }
             else
             {return;}
@@ -164,19 +168,28 @@ public class NewBehaviourScript2 : MonoBehaviour
         if (floorContacts > 0)
         {
             if (grabCDCounter == 0) {canGrab = true;}
+
             primaryContact = currentSurfaces[0];
             surfaceNorm = primaryContact.normal;
             surfaceAngle = Vector2.SignedAngle(Vector2.right, surfaceNorm);
             foreach (ContactPoint2D surface in currentSurfaces)
             {
-                float newAngle = Vector2.SignedAngle(Vector2.right, surface.normal);
-                if (Mathf.Abs(newAngle - velocityAngle) < Mathf.Abs(surfaceAngle - velocityAngle))
+                float newAngle = Mathf.Abs(Vector2.SignedAngle(surface.normal, normVelocity));
+
+                if (newAngle < Mathf.Abs(Vector2.SignedAngle(primaryContact.normal, normVelocity)))
                 {
                     primaryContact = surface;
                     surfaceNorm = primaryContact.normal;
-                    surfaceAngle = newAngle;
+                    surfaceAngle = Vector2.SignedAngle(Vector2.right, surfaceNorm);
+                }
+                else if (newAngle == surfaceAngle && Mathf.Abs(Vector2.SignedAngle(surface.normal, Vector2.down)) < Mathf.Abs(Vector2.SignedAngle(primaryContact.normal, Vector2.down)))
+                {
+                    primaryContact = surface;
+                    surfaceNorm = primaryContact.normal;
+                    surfaceAngle = Vector2.SignedAngle(Vector2.right, surfaceNorm);
                 }
             }
+
             coyoteTime = 5;
         }
         if (coyoteTime >= 0)

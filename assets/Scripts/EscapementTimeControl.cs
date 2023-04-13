@@ -35,7 +35,7 @@ public class EscapementTimeControl : MonoBehaviour
         float angVel = baseSpeed * timeDilation;
         if (Mathf.Abs(angVel) * Time.fixedDeltaTime >= stopDegreeThreshold / 2)
         {
-            rb2d.angularVelocity = angVel;
+            rb2d.angularVelocity = angVel / 2;
             fastFlag = true;
             return;
         }
