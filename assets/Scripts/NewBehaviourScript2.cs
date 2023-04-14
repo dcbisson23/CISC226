@@ -109,16 +109,31 @@ public class NewBehaviourScript2 : MonoBehaviour
         float zIN = Input.GetAxis("Fire2");
         if (Mathf.Abs(zIN) > 0.05f && newLayerTransform == 0 && layerSwapCDCounter == 0)
         {
-            Vector2 newLocation = rb2d.position + playerCollider.offset + Vector2.up * 0.2f + rb2d.velocity * layerChangeFrameTime * Time.fixedDeltaTime;
+            Vector2 newLocation = rb2d.position + playerCollider.offset;
+            Vector2 frameVel = currentVelocity;
+
             int newLayer = currentLayer + (int) Mathf.Sign(zIN);
             int layerMask = LayerMask.GetMask((LayerMask.LayerToName(newLayer)));
-            Collider2D hit = Physics2D.OverlapCircle(newLocation, playerCollider.radius, layerMask);
-            if (newLayer >= minLayer && newLayer <= minLayer + 5 && hit == null)
+            if (isGrounded) {newLocation += surfaceNorm * 1.15f;}
+            Collider2D hitInit = Physics2D.OverlapCircle(newLocation, playerCollider.radius * 2f, layerMask);
+            
+            for (int i = 0; i < layerChangeFrameTime; i++)
+            {
+                frameVel *= (1.0f - Time.fixedDeltaTime * rb2d.drag); // drag
+                if (!isGrounded)
+                {
+                    frameVel += Physics2D.gravity * rb2d.gravityScale * Time.fixedDeltaTime; // gravity
+                }
+                newLocation+= frameVel * Time.fixedDeltaTime; // move point
+            }
+            Collider2D hitDest = Physics2D.OverlapCircle(newLocation, playerCollider.radius * 2f, layerMask);
+            bool hit = (hitInit != null || hitDest != null);
+            if (newLayer >= minLayer && newLayer <= minLayer + 5 && !hit)
             {
                 gameObject.layer = 3;
                 layerSwapTime = layerChangeFrameTime;
                 layerSwapCDCounter = layerSwapCooldown;
-                currentLayer = newLayer;
+                gameObject.layer = newLayer;
                 grabFlag = false;
             }
         }
@@ -152,12 +167,11 @@ public class NewBehaviourScript2 : MonoBehaviour
         if (currentLayer != gameObject.layer)
         {
             if (isGrounded) {rb2d.gravityScale = 0;}
-            float target = (float) (currentLayer - 6) * layerSwapDistance * -1;
-            transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.SmoothDamp(transform.position.z, target, ref newLayerTransform, layerSwapTime * Time.deltaTime));
+            float target = (float) (gameObject.layer - 6) * layerSwapDistance * -1;
+            transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.SmoothDamp(transform.position.z, target, ref newLayerTransform, layerChangeFrameTime * Time.fixedDeltaTime));
             if (transform.position.z >= target - 0.05f && transform.position.z <= target + 0.05f)
             {
-
-                gameObject.layer = currentLayer;
+                currentLayer = gameObject.layer;
                 newLayerTransform = 0;
                 transform.position = new Vector3(transform.position.x, transform.position.y, target);
                 rb2d.gravityScale = 2;
