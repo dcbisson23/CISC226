@@ -20,10 +20,10 @@ public class NewBehaviourScript2 : MonoBehaviour
     private int floorContacts;
     private ContactPoint2D primaryContact;
     private Vector2 surfaceNorm;
-    private float surfaceAngle;
+    public float surfaceAngle;
 
     private bool jumpReady = false;
-    private bool isGrounded = false;
+    public bool isGrounded = false;
     private bool grabFlag = false;
     private bool canGrab = false;
     private int grabCooldown = 5;
@@ -36,7 +36,9 @@ public class NewBehaviourScript2 : MonoBehaviour
     private float newLayerTransform;
     private float xIN = 0f;
     private float yIN = 0f;
-    private Vector2 currentVelocity;
+    private float zIN = 0f;
+    private float dxIN = 0f;
+    public Vector2 currentVelocity;
     private Vector2 normVelocity;
     public int currentLayer;
     private int minLayer = 6;
@@ -57,9 +59,9 @@ public class NewBehaviourScript2 : MonoBehaviour
         if (newLayerTransform != 0)
         {return;}
 
-        float dxIN = xIN;
         xIN = Input.GetAxis("Horizontal");
         yIN = Input.GetAxis("Vertical");
+        zIN = Input.GetAxis("Fire2");
         if (Input.GetButtonDown("Jump"))
         {
             if (jumpReady == true)
@@ -81,20 +83,9 @@ public class NewBehaviourScript2 : MonoBehaviour
             }
         }
 
-        if (Mathf.Abs(xIN) > 0.05f)
-        {
-            if (Mathf.Abs(xIN - dxIN) >= 0.5f)
-            {
-                rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed * snapFactor, ForceMode2D.Force);
-            }
-            rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed, ForceMode2D.Force);
-        }
 
-        if (Mathf.Abs(yIN) > 0.05f)
-        {
-        }
 
-        if (Input.GetAxis("Fire3") > 0.05f && canGrab && floorContacts > 0)
+        if (zIN > 0.05f && canGrab && floorContacts > 0)
         {
             if (grabFlag == false)
             {
@@ -106,7 +97,6 @@ public class NewBehaviourScript2 : MonoBehaviour
             grabFlag = true;
         }
 
-        float zIN = Input.GetAxis("Fire2");
         if (Mathf.Abs(zIN) > 0.05f && newLayerTransform == 0 && layerSwapCDCounter == 0)
         {
             Vector2 newLocation = rb2d.position + playerCollider.offset;
@@ -153,6 +143,19 @@ public class NewBehaviourScript2 : MonoBehaviour
     }
     void FixedUpdate()
     {
+        if (Mathf.Abs(xIN) > 0.05f)
+        {
+            if (Mathf.Abs(xIN - dxIN) >= 0.5f)
+            {
+                rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed * snapFactor, ForceMode2D.Force);
+            }
+            rb2d.AddForce(xIN * Vector2.left * Vector2.Perpendicular(surfaceNorm) * moveSpeed, ForceMode2D.Force);
+        }
+
+        if (Mathf.Abs(yIN) > 0.05f)
+        {
+        }
+
         currentVelocity = rb2d.velocity;
         normVelocity = currentVelocity.normalized;
         float velocityAngle = Vector2.SignedAngle(Vector2.right, normVelocity);
@@ -225,6 +228,7 @@ public class NewBehaviourScript2 : MonoBehaviour
             canGrab = false;
 
         }
+        dxIN = xIN;
     }
 
 

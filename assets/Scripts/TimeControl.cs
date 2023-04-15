@@ -5,6 +5,7 @@ using UnityEngine;
 public class TimeControl : MonoBehaviour
 {
     public float baseSpeed;
+    public GearActivator pSwitch;
     private Rigidbody2D rb2d;
     private TimeControllerScript timeDilator;
 
@@ -18,7 +19,12 @@ public class TimeControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float timeDilation = timeDilator.timeDilation;
+        float timeDilation = 0;
+        if (pSwitch != null && pSwitch.isOnline)
+        {
+            timeDilation = timeDilator.timeDilation;
+        }
         rb2d.angularVelocity = baseSpeed * timeDilation;
+
     }
 }
