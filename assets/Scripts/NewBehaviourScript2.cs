@@ -6,8 +6,8 @@ public class NewBehaviourScript2 : MonoBehaviour
 {
 
 
-    public float moveSpeed = 200;
-    public float jumpStrength = 400;
+    public float moveSpeed = 2500;
+    public float jumpStrength = 2500;
     public float snapFactor = 0.5f;
     public float layerChangeFrameTime = 5;
 
@@ -85,7 +85,7 @@ public class NewBehaviourScript2 : MonoBehaviour
 
 
 
-        if (zIN > 0.05f && canGrab && floorContacts > 0)
+        if (Mathf.Abs(zIN) < 0.05f && canGrab && floorContacts > 0)
         {
             if (grabFlag == false)
             {

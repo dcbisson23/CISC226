@@ -20,10 +20,11 @@ public class TimeControl : MonoBehaviour
     void Update()
     {
         float timeDilation = 0;
-        if (pSwitch != null && pSwitch.isOnline)
+        if (pSwitch != null && pSwitch.isOnline || pSwitch == null)
         {
-            timeDilation = timeDilator.timeDilation;
+                timeDilation = timeDilator.timeDilation;
         }
+
         rb2d.angularVelocity = baseSpeed * timeDilation;
 
     }
