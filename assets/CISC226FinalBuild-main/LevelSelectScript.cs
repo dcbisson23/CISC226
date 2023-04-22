@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class LevelSelectScript : MonoBehaviour
 {
     public AudioSource click;
-    public void StatLevel1()
+    public void StartLevel1()
     {
         click.Play();
         SceneManager.LoadScene(1);
@@ -15,5 +15,10 @@ public class LevelSelectScript : MonoBehaviour
     {
         click.Play();
         SceneManager.LoadScene(2); 
+    }
+    public void StartLevel3()
+    {
+        click.Play();
+        SceneManager.LoadScene(3);
     }
 }
